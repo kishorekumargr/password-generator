@@ -1,10 +1,14 @@
-# 🔐 Password Generator
+<div align="center">
+ <img src="./public/screenshot.png" width="700" />
 
-A modern password generator built with **Next.js (App Router)**, **TypeScript**, **Tailwind CSS**, and **shadcn/ui**.
+ <br />
+
+ <h2>Password Generator</h2>
+</div>
+
+A modern password generator built with **Next.js**, **TypeScript**, **Tailwind CSS**, and **shadcn/ui**.
 
 This app allows users to generate secure passwords with customizable options like length, numbers, symbols, and mixed case letters.
-
----
 
 ## ✨ Features
 
@@ -18,8 +22,6 @@ This app allows users to generate secure passwords with customizable options lik
 - 🎨 Clean modern UI (Tailwind + shadcn)
 - ⚡ Built with Next.js App Router
 
----
-
 ## 🛠 Tech Stack
 
 - **Next.js 16**
@@ -27,5 +29,3 @@ This app allows users to generate secure passwords with customizable options lik
 - **Tailwind CSS**
 - **shadcn/ui**
 - **lucide-react (icons)**
-
----
