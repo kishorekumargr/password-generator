@@ -1,119 +1,156 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Copy, RefreshCcw, Minus, Plus, Check } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
-  const [password, setPassword] = useState<string>("");
-  const [length, setLength] = useState<number>(12);
-  const [includeNumbers, setIncludeNumbers] = useState<boolean>(true);
-  const [includeSymbols, setIncludeSymbols] = useState<boolean>(true);
-
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const [length, setLength] = useState(12);
+  const [includeNumbers, setIncludeNumbers] = useState(true);
+  const [includeSymbols, setIncludeSymbols] = useState(true);
+  const [includeMixedCase, setIncludeMixedCase] = useState(true);
+  const [password, setPassword] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const generatePassword = useCallback(() => {
-    let charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    if (includeNumbers) charset += "0123456789";
-    if (includeSymbols) charset += "!@#$%^&*()_+[]{}|;:,.<>?";
+    let chars = "abcdefghijklmnopqrstuvwxyz";
 
-    if (charset.length === 0) {
-      setPassword("");
-      alert("Please select at least one character type (letters, numbers, or symbols).");
-      return;
-    }
+    if (includeMixedCase) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (includeNumbers) chars += "0123456789";
+    if (includeSymbols) chars += "!@#$%&*_-+=?";
 
-    let generatedPass = "";
+    let generated = "";
     for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * charset.length);
-      generatedPass += charset[randomIndex];
+      generated += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setPassword(generatedPass);
-  }, [length, includeNumbers, includeSymbols]);
 
-  const copyPasswordToClipboard = useCallback(() => {
-    passwordRef.current?.select();
-    passwordRef.current?.setSelectionRange(0, 99999); // For mobile devices
-    if (password) {
-      window.navigator.clipboard.writeText(password);
-      alert("Password copied to clipboard!");
-    }
-  }, [password]);
+    setPassword(generated);
+  }, [length, includeNumbers, includeSymbols, includeMixedCase]);
 
-  // Generate password on initial render and when dependencies change
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(password);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   useEffect(() => {
     generatePassword();
   }, [generatePassword]);
 
+  const getStrength = () => {
+    if (length >= 12 && includeNumbers && includeSymbols && includeMixedCase) {
+      return "Strong";
+    }
+    return "Weak";
+  };
+
   return (
-    <div className="flex flex-col justify-center items-center bg-[#1B133F] p-4 min-h-screen">
-      <h1 className="mb-1 font-bold text-white text-3xl text-center">Password Generator</h1>
-      <p className="mb-4 text-white text-sm">Create strong passwords with Password Generator</p>
-      <div className="bg-linear-to-b from-[#37247F] to-[#1B133F] shadow-lg p-8 rounded-lg w-full max-w-md text-white">
-        <div className="flex items-center space-x-2 mb-6">
-          <input
-            type="text"
-            readOnly
-            value={password}
-            ref={passwordRef}
-            className="flex-grow p-3 text-green-400 text-xl"
-            placeholder="Generated Password"
-          />
-          <button
-            onClick={copyPasswordToClipboard}
-            className="bg-[#6D49FF] hover:bg-[#4A2DC4] px-6 py-1.5 rounded-full font-semibold text-white transition-colors duration-200"
+    <div className="min-h-screen bg-neutral-100 flex items-center justify-center p-6">
+      <Card className="w-full max-w-2xl p-8 rounded-3xl shadow border border-neutral-200 bg-white space-y-8">
+        {/* Password Display */}
+        <div className="flex items-center justify-between border border-green-400 rounded-2xl px-6 py-6">
+          <h1 className="text-3xl font-bold tracking-wide break-all">{password}</h1>
+
+          <Button
+            onClick={copyToClipboard}
+            className="bg-yellow-400 hover:bg-yellow-500 text-black rounded-full px-6 py-6 text-lg font-semibold shadow-md"
           >
-            Copy
-          </button>
+            <Copy className="mr-2 h-5 w-5" />
+            {copied ? "Copied" : "Copy"}
+          </Button>
         </div>
 
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-semibold">Generated Password</h2>
+            <Badge
+              variant="secondary"
+              className="bg-green-100 text-green-700 px-4 py-1 text-sm rounded-full"
+            >
+              {getStrength()}
+            </Badge>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={generatePassword}
+            className="rounded-full px-6 py-6 text-lg font-semibold"
+          >
+            <RefreshCcw className="mr-2 h-5 w-5" />
+            Refresh
+          </Button>
+        </div>
+
+        {/* Length Slider */}
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <label htmlFor="length">
-              <span>{length}</span> characters
-            </label>
-            <input
-              type="range"
-              id="length"
-              min="6"
-              max="30"
-              value={length}
-              onChange={(e) => setLength(Number(e.target.value))}
-              className="w-1/2 accent-indigo-500 cursor-pointer"
-            />
+          <div className="flex items-center gap-4">
+            <span className="text-lg font-medium">Password Length</span>
+            <span className="text-xl font-bold">{length}</span>
           </div>
 
-          <div className="flex justify-between items-center">
-            <label htmlFor="numbers" className="cursor-pointer">
-              Numbers
-            </label>
-            <input
-              type="checkbox"
-              id="numbers"
-              checked={includeNumbers}
-              onChange={() => setIncludeNumbers((prev) => !prev)}
-              className="w-5 h-5 accent-indigo-500 cursor-pointer"
-            />
-          </div>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setLength((prev) => Math.max(4, prev - 1))}
+              className="rounded-full"
+            >
+              <Minus />
+            </Button>
 
-          <div className="flex justify-between items-center">
-            <label htmlFor="symbols" className="cursor-pointer">
-              Symbols
-            </label>
-            <input
-              type="checkbox"
-              id="symbols"
-              checked={includeSymbols}
-              onChange={() => setIncludeSymbols((prev) => !prev)}
-              className="w-5 h-5 accent-indigo-500 cursor-pointer"
+            <Slider
+              value={[length]}
+              min={4}
+              max={32}
+              step={1}
+              onValueChange={(value) => setLength(value[0])}
+              className="flex-1"
             />
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setLength((prev) => Math.min(32, prev + 1))}
+              className="rounded-full"
+            >
+              <Plus />
+            </Button>
           </div>
         </div>
 
-        <button
-          onClick={generatePassword}
-          className="bg-[#0ad7a4] mt-8 py-2 rounded-md w-full font-semibold text-white transition-colors duration-200"
-        >
-          Generate New Password
-        </button>
+        {/* Options */}
+        <div className="flex flex-wrap gap-10 pt-4">
+          <Option label="Numbers" checked={includeNumbers} onChange={setIncludeNumbers} />
+
+          <Option label="Symbols" checked={includeSymbols} onChange={setIncludeSymbols} />
+
+          <Option label="Mixed case" checked={includeMixedCase} onChange={setIncludeMixedCase} />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function Option({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center gap-4">
+      <span className="text-lg font-medium">{label}</span>
+      <div className="flex items-center gap-2">
+        <Switch checked={checked} onCheckedChange={onChange} />
+        {checked && <Check className="text-blue-600 w-5 h-5" />}
       </div>
     </div>
   );
